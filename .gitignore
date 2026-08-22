@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+data/*.xlsx 
+data/*.parquet
+models/*.pkl
+.ipynb_checkpoints/
