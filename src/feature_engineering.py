@@ -1,11 +1,11 @@
 """
-Retention Risk — Phase 3: RFM & Feature Engineering
+Retention Risk - Phase 3: RFM & Feature Engineering
 Reads data/cleaned_transactions.parquet and data/customer_labels.parquet.
 
 CRITICAL RULE: every feature is computed using ONLY transactions on or
 before the snapshot date (same cutoff used for the label in Phase 2).
 Using anything after the snapshot would leak future information into
-features the model is supposed to predict from — the model would be
+features the model is supposed to predict from - the model would be
 learning from data it wouldn't have in a real deployment.
 """
 
@@ -24,10 +24,6 @@ def load_data():
 
 
 def get_snapshot_date(df: pd.DataFrame) -> pd.Timestamp:
-    """
-    Must match Phase 2 exactly (65% through the timeline) so features
-    and label are computed relative to the same point in time.
-    """
     min_date, max_date = df["InvoiceDate"].min(), df["InvoiceDate"].max()
     return min_date + (max_date - min_date) * 0.65
 
@@ -63,16 +59,7 @@ def build_diversity_features(pre_snapshot: pd.DataFrame) -> pd.DataFrame:
 
 def build_trend_feature(pre_snapshot: pd.DataFrame,
                          snapshot_date: pd.Timestamp) -> pd.DataFrame:
-    """
-    Spending trend: compare monetary spend in the recent third of each
-    customer's active window vs their earlier activity. A negative trend
-    (recent spend lower than historical average) is a classic early
-    warning sign — often more predictive than recency alone.
-
-    Approach: split each customer's pre-snapshot history into two halves
-    by date (before/after their own midpoint), compare average spend per
-    period. Customers with only one purchase get a neutral trend of 0.
-    """
+    """Roughly, is the customer spending more or less than before?"""
     results = []
     for cust_id, group in pre_snapshot.groupby("CustomerID"):
         group = group.sort_values("InvoiceDate")
@@ -111,7 +98,6 @@ def build_feature_table(df: pd.DataFrame, labels: pd.DataFrame) -> pd.DataFrame:
     features = rfm.merge(diversity, on="CustomerID", how="left")
     features = features.merge(trend, on="CustomerID", how="left")
 
-    # bring in the AtRisk label
     features = features.merge(
         labels[["CustomerID", "AtRisk"]], on="CustomerID", how="inner"
     )
