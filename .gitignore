@@ -220,4 +220,5 @@ __marimo__/
 data/*.xlsx 
 data/*.parquet !data/latest_scores.parquet
 models/*.pkl
+!models/model.pkl
 .ipynb_checkpoints/
