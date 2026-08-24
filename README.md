@@ -43,7 +43,7 @@ The raw data has real messiness: cancelled invoices (prefixed `C`), missing `Cus
 **Decisions made, and why:**
 
 - **Dropped rows with missing `CustomerID`.** Can't attribute a transaction to a customer for a per-customer risk model, so these are unusable here. This is a real bias worth naming: it likely skews the dataset toward registered/attributed customers and away from guest-style checkouts.
-- **Kept cancellations as a flag rather than dropping them.** A customer who cancels frequently is itself a potential risk signal — discarding that information would throw away something the model could learn from.
+- **Kept cancellations as a flag rather than dropping them.** A customer who cancels frequently is itself a potential risk signal - discarding that information would throw away something the model could learn from.
 - **Dropped non-product stock codes** (`POST`, `BANK CHARGES`, `D`, `M`, etc.) - these pollute monetary totals if left in, since they're not real product purchases.
 - **Forced `Invoice` and `StockCode` to string type explicitly.** These columns mix numeric-looking values with alphanumeric codes (`489434` vs `C489449`), which pandas stores as `object` dtype - fine for pandas, but PyArrow's parquet writer tries to infer a single type and throws `ArrowInvalid` when it hits the mismatch. Forcing to string upfront avoids this.
 
@@ -102,7 +102,7 @@ Trained a Logistic Regression baseline and an XGBoost classifier.
 | Logistic Regression | 0.869 | 0.857 | 82% |
 | **XGBoost (chosen)** | **0.926** | **0.938** | **84%** |
 
-Balanced precision/recall across both classes (~0.84-0.85), with a believable error rate (72 false negatives, 76 false positives out of 943 test customers) — the kind of result that holds up to scrutiny, unlike the leaked version.
+Balanced precision/recall across both classes (~0.84-0.85), with a believable error rate (72 false negatives, 76 false positives out of 943 test customers) - the kind of result that holds up to scrutiny, unlike the leaked version.
 
 **What actually drives predictions**, per XGBoost feature importance: Frequency (39%), Tenure (23%), Monetary (13%) - behavioural loyalty signals rather than raw spend.
 
